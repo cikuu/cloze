@@ -1,13 +1,80 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-
+<!DOCTYPE html>
 <html>
-<head>
-	<title>HelloWorld</title>
-</head>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<meta http-equiv="Access-Control-Allow-Origin" content="*" />
+		<link rel="stylesheet" href="./css/mui.min.css">
+		<style>
+			.mui-badge {
+				background-color: rgba(0,0,0,0);
+			}
+		</style>
+		<script src="./js/mui.min.js"></script>
+		<script src="./js/template-web.js"></script>
+	</head>
 
-<body>
+	<body>
 
-Hello World!
-
-</body>
+		<div class="mui-content">
+			<div class="mui-content-padded"> 
+				<h3 style="text-align:center">AI智能完形填空</h3>
+				<p style="text-align:center">挖空处用”*“代替，支持一句一空</p>
+				<form class="mui-input-group">
+					<div class="mui-input-row">
+						<input type="text" class="mui-input-clear mui-indexed-list-search-input snt" placeholder="输入句子" value="Parents * much importance to education .">
+					</div>
+                    
+					<div class="mui-input-row mui-input-range">
+						<input type="range" id='block-range' value="10" min="1" max="100" class="mui-input-clear topk" style="margin-left: 15px">
+					</div>
+					<div class="mui-button-row">
+						<button type="button" class="mui-btn mui-btn-primary submit" id="submit">提 交</button>
+					</div>
+				</form><br>
+				<div id="result"></div>
+			</div>
+		</div>
+		<script type="text/html" id="tpl">
+			<ul class="mui-table-view">
+				{{each data as item i}}
+				<li class="mui-table-view-cell">{{item[0]}} <span class="mui-badge">{{item[1]}}%</span>
+					<p class="mui-progressbar mui-progressbar-in" data-progress="{{item[1]}}"><span></span></p></li>
+				{{/each}}
+			</ul>
+		</script>
+		<script>
+		function getdata(){
+		document.getElementById('result').innerHTML='';
+		mui.ajax('http://hk.werror.com/i.php',{
+			data:{
+				snt: mui('.snt')[0].value,
+				topk: mui('.topk')[0].value
+			},
+			type:'get',
+			timeout:10000,
+			dataType: 'json',
+			success:function(data){
+				data.forEach(function (item, index) {data[index][1] = Math.floor(item[1]*10000)/100})
+				var dd ={'data':data};
+				var html = template('tpl', dd);
+				document.getElementById('result').innerHTML = html;
+				mui("#result .mui-progressbar").each(function () {
+					mui(this).progressbar({progress:this.getAttribute("data-progress")}).show();
+				});
+			},
+			error:function(xhr,type,errorThrown){
+				//异常处理；
+				console.log(type);
+			}
+		});
+		}
+		document.getElementById('submit').addEventListener('click', function() {
+			getdata();
+		});getdata();
+		</script>
+	</body>
 </html>
